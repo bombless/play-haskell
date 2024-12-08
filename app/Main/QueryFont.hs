@@ -7,6 +7,12 @@ import Text.Printf (printf)
 import System.Directory (listDirectory)
 import System.FilePath ((</>), takeExtension)
 
+import Foreign.C.String (withCString)
+import Foreign.Ptr (nullPtr)
+
+import SDL.Raw.Font (fontFaces, closeFont)
+import qualified SDL.Raw.Font as Raw (openFont, init, quit)
+
 getFontFiles :: IO [FilePath]
 getFontFiles = do
     let fontDir = "C:\\Windows\\Fonts"
@@ -26,6 +32,26 @@ isFontFile path = do
 queryFont :: IO ()
 queryFont = do
     let printEveryLine :: FilePath -> IO ()
-        printEveryLine = (>> putStrLn "This looks good.") . print
+        printEveryLine file = do
+            print file
+            num <- numFaces file
+            case num of
+                Just n -> printf "faces count %d\n" n
+                _ -> putStrLn "Failed to open font."
+    _ <- Raw.init
     mapM_ printEveryLine =<< getFontFiles
+    Raw.quit
+
+numFaces :: FilePath -> IO (Maybe Int)
+numFaces path = do
+    font <- withCString path (`Raw.openFont` 12)
+    if font == nullPtr
+        then do
+            putStrLn "Raw.openFont failed"
+            return Nothing
+        else do
+            num <- fontFaces font
+            closeFont font
+            return $ Just $ fromIntegral num
+            
 
