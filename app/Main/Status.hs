@@ -3,6 +3,8 @@ module Main.Status (runStatus) where
 import Control.Concurrent (threadDelay)
 import System.Random (randomRIO)
 
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
+
 -- 模拟用户输入查询函数 (返回 IO Bool)
 queryInput :: IO Bool
 queryInput = do
@@ -19,23 +21,30 @@ updateNumber prev = do
 -- 主函数
 runStatus :: IO ()
 runStatus = do
-    let loop :: Int -> IO ()
-        loop prev = do
+    countDown <- newIORef 10 :: IO (IORef Int)
+    memory <- newIORef 10
+    let loop :: IO ()
+        loop = do
             -- 每三秒查询一次用户输入
-            threadDelay 3000000  -- 3秒，单位是微秒
+            threadDelay 3_000_000  -- 3秒，单位是微秒
 
             -- 获取 queryInput 的结果
             result <- queryInput
             if result then do
                 -- 如果返回 True，调用 updateNumber 并输出结果
-                newNumber <- updateNumber prev  -- 传入上一个数字
+                num <- readIORef memory
+                newNumber <- updateNumber num  -- 传入上一个数字
+                writeIORef memory newNumber
+                countDownNum <- readIORef countDown
+                writeIORef countDown $ countDownNum - 1
                 putStrLn $ "New random number: " ++ show newNumber
-                -- 递归调用 loop，传递新的数字作为上一个值
-                loop newNumber
             else do
-                -- 如果返回 False，不更新，继续循环
                 putStrLn "No update, queryInput returned False"
-                loop prev  -- 传递原来的值，继续循环
+            countDownNum <- readIORef countDown
+            if countDownNum == 0
+                then return ()
+                else loop
 
     -- 启动循环，初始值为 0
-    loop 0
+    loop
+    
