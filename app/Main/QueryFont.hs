@@ -27,6 +27,5 @@ queryFont :: IO ()
 queryFont = do
     let printEveryLine :: FilePath -> IO ()
         printEveryLine = (>> putStrLn "This looks good.") . print
-    files <- getFontFiles
-    mapM_ printEveryLine files
+    mapM_ printEveryLine =<< getFontFiles
 
