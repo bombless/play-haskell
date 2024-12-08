@@ -1,9 +1,12 @@
+{-# LANGUAGE NumericUnderscores #-}
+
 module Main.Status (runStatus) where
 
 import Control.Concurrent (threadDelay)
 import System.Random (randomRIO)
 
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
+import Control.Monad (unless)
 
 -- 模拟用户输入查询函数 (返回 IO Bool)
 queryInput :: IO Bool
@@ -21,29 +24,25 @@ updateNumber prev = do
 -- 主函数
 runStatus :: IO ()
 runStatus = do
-    countDown <- newIORef 10 :: IO (IORef Int)
-    memory <- newIORef 10
+    countDown <- newIORef 6 :: IO (IORef Int)
+    memory <- newIORef 0
     let loop :: IO ()
         loop = do
             -- 每三秒查询一次用户输入
-            threadDelay 3_000_000  -- 3秒，单位是微秒
+            threadDelay 1_200_000  -- 3秒，单位是微秒
 
             -- 获取 queryInput 的结果
             result <- queryInput
             if result then do
                 -- 如果返回 True，调用 updateNumber 并输出结果
-                num <- readIORef memory
-                newNumber <- updateNumber num  -- 传入上一个数字
+                newNumber <- readIORef memory >>= updateNumber  -- 传入上一个数字
                 writeIORef memory newNumber
-                countDownNum <- readIORef countDown
-                writeIORef countDown $ countDownNum - 1
+                readIORef countDown >>= writeIORef countDown . flip (-) 1
                 putStrLn $ "New random number: " ++ show newNumber
             else do
                 putStrLn "No update, queryInput returned False"
             countDownNum <- readIORef countDown
-            if countDownNum == 0
-                then return ()
-                else loop
+            unless (countDownNum == 0) loop
 
     -- 启动循环，初始值为 0
     loop
