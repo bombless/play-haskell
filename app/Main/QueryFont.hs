@@ -13,6 +13,7 @@ import Foreign.Ptr (nullPtr)
 
 import SDL.Raw.Font (fontFaces, closeFont)
 import qualified SDL.Raw.Font as Raw (openFont, init, quit)
+import Control.Monad (when)
 
 getFontFiles :: IO [FilePath]
 getFontFiles = do
@@ -23,31 +24,24 @@ getFontFiles = do
     -- filterM isFontFile (map (fontDir </>) allFiles)
     return $ map (fontDir </>) allFiles
 
--- isFontFile :: FilePath -> IO Bool
--- isFontFile path = do
---     let ext = takeExtension path
---     if ext == ".ttf" || ext == ".otf"
---         then return True
---         else do
---             printf "This filename is %s, not so good!\n" path
---             return False
 
 queryFont :: IO ()
 queryFont = do
     let printEveryLine :: FilePath -> IO ()
         printEveryLine file = do
-            print file
-            numFaces file >>= printf "faces count %d\n"
+            num <- numFaces file
+            when (num > 1) $ printf "% 5d %s\n" num file
     _ <- Raw.init
-    mapM_ printEveryLine =<< getFontFiles
-    Raw.quit
+    fontFiles <- getFontFiles  -- 获取字体文件
+    mapM_ printEveryLine fontFiles  -- 执行每个文件的操作
+    Raw.quit  -- 退出 Raw
 
 numFaces :: FilePath -> IO Int
 numFaces path = do
     font <- withCString path (`Raw.openFont` 12)
     if font == nullPtr
         then do
-            putStrLn "Raw.openFont failed"
+            printf "Raw.openFont failed: %s\n" path
             return 0
         else do
             num <- fontFaces font
