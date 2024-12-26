@@ -63,6 +63,7 @@ executable play
     -- Modules included in this executable, other than Main.
     other-modules:    Main.Status
                       Main.QueryFont
+                      Main.Strings
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -72,7 +73,8 @@ executable play
                       random,
                       sdl2-ttf,
                       directory,
-                      filepath
+                      filepath,
+                      time
 
     -- Directories containing source files.
     hs-source-dirs:   app
