@@ -64,6 +64,7 @@ executable play
     other-modules:    Main.Status
                       Main.QueryFont
                       Main.Strings
+                      Main.Gui
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -71,10 +72,14 @@ executable play
     -- Other library packages from which modules are imported.
     build-depends:    base ^>=4.17.2.0,
                       random,
+                      sdl2,
                       sdl2-ttf,
                       directory,
                       filepath,
-                      time
+                      time,
+                      dear-imgui,
+                      managed,
+                      gl
 
     -- Directories containing source files.
     hs-source-dirs:   app

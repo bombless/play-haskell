@@ -1,0 +1,4 @@
+packages: *.cabal
+
+package dear-imgui
+  flags: +sdl
